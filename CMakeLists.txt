@@ -13,11 +13,16 @@ FetchContent_Declare(SFML
     SYSTEM)
 FetchContent_MakeAvailable(SFML)
 
-add_executable(main src/Center.cpp)
+add_executable(main 
+    src/Center.cpp
+    include/button.cpp
+    include/sphere.cpp
+    include/engine.cpp)
 target_link_libraries(main PRIVATE
     SFML::Graphics
     SFML::Audio
     SFML::Network
 )
+target_include_directories(main PUBLIC ${CMAKE_SOURCE_DIR} include)
 
 set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT main)
