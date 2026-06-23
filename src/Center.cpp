@@ -6,6 +6,8 @@
 
 int main()
 {
+	
+
 	sf::RenderWindow window( sf::VideoMode( { 600, 400 } ), "Engine" );
 	window.setVerticalSyncEnabled(true);
     sf::View view;
@@ -24,22 +26,33 @@ int main()
     background.setScale({view.getSize().x/(float)tex.getSize().x, view.getSize().y/(float)tex.getSize().y});
 	window.draw(background);
 
-	Button button1(sf::Texture("Images/image2.jpg"),{view.getCenter().x+260,view.getCenter().y+170},"gravity");
+	Button button1(sf::Texture("Images/image2.jpg"),{view.getCenter().x+230,view.getCenter().y+140},"gravity",sf::Color::Blue);
+	Button button_add(sf::Texture("Images/plus.png"),{view.getCenter().x+230,view.getCenter().y+50},"Add Sphere",sf::Color::Green);
+	Button button_delete(sf::Texture("Images/minus.png"),{view.getCenter().x+230,view.getCenter().y-40},"Add Sphere",sf::Color::Red);
+
 	Engine eg(space);
 
 	std::function<void(const sf::Event::Closed)> onClose = [&window](const sf::Event::Closed&)
 	{
 		window.close();
 	};
-	std::function<void(const sf::Event::MouseMoved)> onMouseMoved=[&window, &view,&button1] (const sf::Event::MouseMoved& e)
+	std::function<void(const sf::Event::MouseMoved)> onMouseMoved=[&window, &view,&button1,&button_add,&button_delete] (const sf::Event::MouseMoved& e)
 	{
 		sf::Vector2f mousepos=window.mapPixelToCoords(e.position);
 
 		if(button1.state!=Button::State::Press)
+		{
 			if(button1.getBounds().contains(mousepos)) button1.mouseON();
 			else button1.mouseOFF();
+		}
+
+		if(button_add.getBounds().contains(mousepos)) button_add.mouseON();
+		else button_add.mouseOFF();
+
+		if(button_delete.getBounds().contains(mousepos)) button_delete.mouseON();
+		else button_delete.mouseOFF();
 	};
-	std::function<void(const sf::Event::MouseButtonPressed)> onMouseButtonPressed=[&window, &view,&button1,&eg] (const sf::Event::MouseButtonPressed& e)
+	std::function<void(const sf::Event::MouseButtonPressed)> onMouseButtonPressed=[&window, &view,&button1,&eg,&button_add,&button_delete](const sf::Event::MouseButtonPressed& e)
 	{
 		sf::Vector2f mousepos=window.mapPixelToCoords(e.position);
 		if(button1.getBounds().contains(mousepos))
@@ -49,7 +62,7 @@ int main()
 			{	
 				button1.mousePress();
 				button1.state=Button::State::Press;
-				eg.setGravity({0,15});
+				eg.setGravity({0,45});
 			}
 			else
 			{
@@ -58,14 +71,32 @@ int main()
 				eg.setGravity({0,0});
 			}
 		}
+		if(button_add.getBounds().contains(mousepos))
+		{
+			button_add.mousePress();
+			eg.createSphere();
+		}
+		if(button_delete.getBounds().contains(mousepos))
+		{
+			button_delete.mousePress();
+			eg.deleteSphere(0);
+		}
 	};
-	std::function<void(const sf::Event::MouseButtonReleased)> onMouseButtonReleased=[&window, &view,&button1,&eg] (const sf::Event::MouseButtonReleased& e)
+	std::function<void(const sf::Event::MouseButtonReleased)> onMouseButtonReleased=[&window, &view,&button1,&eg,&button_add,&button_delete] (const sf::Event::MouseButtonReleased& e)
 	{
 		sf::Vector2f mousepos=window.mapPixelToCoords(e.position);
 		if(button1.getBounds().contains(mousepos))
 		{
 			//nothing
 		} 
+		if(button_add.getBounds().contains(mousepos))
+		{
+			button_add.mouseOFF();
+		} 
+		if(button_delete.getBounds().contains(mousepos))
+		{
+			button_delete.mouseOFF();
+		}
 	};
 	std::function<void(const sf::Event::KeyPressed)> onKeyPressed =  [&window](const sf::Event::KeyPressed& key)
 	{
@@ -98,6 +129,8 @@ int main()
         window.draw(background);
 		window.draw(space);
 		window.draw(button1);
+		window.draw(button_add);
+		window.draw(button_delete);
 		window.draw(eg);
         window.display();
 	}

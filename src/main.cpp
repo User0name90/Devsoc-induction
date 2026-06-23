@@ -230,3 +230,8 @@ private:
 //         window.display();
 //     }
 // }
+int main()
+{
+    
+    return 0
+}

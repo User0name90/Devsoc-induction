@@ -34,7 +34,7 @@ class Engine : public sf::Drawable
     void checkCollision();
     void checkBounds();
     void uniformMotion();
-    void deleteSphere(int index);
+    void deleteSphere(size_t index);
     void createSphere();
     void start();
     void stop();

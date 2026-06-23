@@ -8,8 +8,9 @@ Engine::~Engine()
 {
     terminate();
 }
- void Engine::deleteSphere(int index)
+ void Engine::deleteSphere(size_t index)
 {
+    if(index>=spheres.size())return;
     if(stop_flag.test_and_set() || terminate_flag.test()) return;
     std::unique_lock<std::shared_mutex> ul(spheres_list_mutex);
 
