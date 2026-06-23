@@ -2,7 +2,7 @@
 #include <iostream>
 #include <random>
 #include "button.hpp"
-
+#include "engine.hpp"
 
 int main()
 {
@@ -25,6 +25,7 @@ int main()
 	window.draw(background);
 
 	Button button1(sf::Texture("Images/image2.jpg"),{view.getCenter().x+260,view.getCenter().y+170},"gravity");
+	Engine eg(space);
 
 	std::function<void(const sf::Event::Closed)> onClose = [&window](const sf::Event::Closed&)
 	{
@@ -33,19 +34,38 @@ int main()
 	std::function<void(const sf::Event::MouseMoved)> onMouseMoved=[&window, &view,&button1] (const sf::Event::MouseMoved& e)
 	{
 		sf::Vector2f mousepos=window.mapPixelToCoords(e.position);
-		if(button1.getBounds().contains(mousepos)) button1.mouseON();
-		else button1.mouseOFF();
+
+		if(button1.state!=Button::State::Press)
+			if(button1.getBounds().contains(mousepos)) button1.mouseON();
+			else button1.mouseOFF();
 	};
-	std::function<void(const sf::Event::MouseButtonPressed)> onMouseButtonPressed=[&window, &view,&button1] (const sf::Event::MouseButtonPressed& e)
+	std::function<void(const sf::Event::MouseButtonPressed)> onMouseButtonPressed=[&window, &view,&button1,&eg] (const sf::Event::MouseButtonPressed& e)
 	{
 		sf::Vector2f mousepos=window.mapPixelToCoords(e.position);
-		if(button1.getBounds().contains(mousepos)) button1.mousePress();
-		else button1.mouseOFF();
+		if(button1.getBounds().contains(mousepos))
+		{
+			
+			if(button1.state==Button::State::Released)
+			{	
+				button1.mousePress();
+				button1.state=Button::State::Press;
+				eg.setGravity({0,15});
+			}
+			else
+			{
+				button1.mouseOFF();
+				button1.state=Button::State::Released;
+				eg.setGravity({0,0});
+			}
+		}
 	};
-	std::function<void(const sf::Event::MouseButtonReleased)> onMouseButtonReleased=[&window, &view,&button1] (const sf::Event::MouseButtonReleased& e)
+	std::function<void(const sf::Event::MouseButtonReleased)> onMouseButtonReleased=[&window, &view,&button1,&eg] (const sf::Event::MouseButtonReleased& e)
 	{
 		sf::Vector2f mousepos=window.mapPixelToCoords(e.position);
-		if(button1.getBounds().contains(mousepos)) button1.mouseOFF();
+		if(button1.getBounds().contains(mousepos))
+		{
+			//nothing
+		} 
 	};
 	std::function<void(const sf::Event::KeyPressed)> onKeyPressed =  [&window](const sf::Event::KeyPressed& key)
 	{
@@ -62,11 +82,15 @@ int main()
 		background.setPosition({view.getCenter().x-(float)view.getSize().x/2,view.getCenter().y - (float)view.getSize().y/2});
 		//background.setOrigin(view.getCenter());
 		background.setScale({view.getSize().x/(float)tex.getSize().x, view.getSize().y/(float)tex.getSize().y});
+		// std::cout<<space.getOrigin().x<<' '<<space.getOrigin().y<<'\n';
 	};
 	std::function<void(const sf::Event::FocusLost)> onLostFocus=[&window](const sf::Event::FocusLost&t)
 	{
+
 	};
-	
+	eg.start();
+	eg.createSphere();
+	eg.createSphere();
 	while (window.isOpen())
 	{
         window.handleEvents(onResize,onClose,onMouseMoved,onMouseButtonPressed,onMouseButtonReleased);
@@ -74,6 +98,7 @@ int main()
         window.draw(background);
 		window.draw(space);
 		window.draw(button1);
+		window.draw(eg);
         window.display();
 	}
 }
