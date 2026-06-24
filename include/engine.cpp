@@ -2,6 +2,8 @@
 #include <iostream>
 Engine::Engine(sf::RectangleShape& rect):space{rect}, randomEngine{std::random_device{}()},sound_buffer{"Audio/collide.mp3"},collision_sound{sound_buffer}
 {
+    debug_line.setSize({60.f,3.f});
+    debug_line.setOrigin({30.f,1.5f});
     collision_sound.setPlayingOffset(sf::seconds(0.1f));
 }
 Engine::~Engine()
@@ -10,7 +12,7 @@ Engine::~Engine()
 }
  void Engine::deleteSphere(size_t index)
 {
-    if(index>=spheres.size())return;
+    if(index>=spheres.size()) return;
     if(stop_flag.test_and_set() || terminate_flag.test()) return;
     std::unique_lock<std::shared_mutex> ul(spheres_list_mutex);
 
@@ -145,9 +147,13 @@ void Engine::checkCollision()
                 std::scoped_lock lock(*it_first->mutex,*it_second->mutex);
                 normal=(it_second->getPosition()- it_first->getPosition());
 
+                
+
                 distance=normal.length();
                 normal/=distance;
                 tangent = normal.rotatedBy(sf::degrees(90));
+
+                
                 sf::Vector2f vel1=it_first->getVelocity();
                 sf::Vector2f vel2=it_second->getVelocity();
 
@@ -158,7 +164,8 @@ void Engine::checkCollision()
                 v2t=vel2.dot(tangent);
                 if(std::abs(distance)<=it_first->getRadius()+it_second->getRadius() && v1n-v2n>0.f)
                 {
-                    tangent=normal.rotatedBy(sf::degrees(90));
+                    debug_line.setRotation(tangent.angle());
+                    debug_line.setPosition(it_first->getPosition()+normal*(float)it_first->getRadius());
                     
                     mass_sum=it_first->getMass()+it_second->getMass();
                     mass_dif=it_first->getMass()-it_second->getMass();
@@ -250,6 +257,10 @@ void Engine::draw(sf::RenderTarget& target, sf::RenderStates states) const
     {
         target.draw(sp);
     }
+    if(debug_flag.test())
+    {
+        target.draw(debug_line);
+    }
 }
 void Engine::start()
 {
@@ -280,4 +291,12 @@ void Engine::playSound()
 {
     collision_sound.setVolume(sound_amp);
     collision_sound.play();
+}
+void Engine::setDebug()
+{
+    debug_flag.test_and_set();
+}
+void Engine::clearDebug()
+{
+    debug_flag.clear();
 }

@@ -6,7 +6,23 @@
 
 int main()
 {
-	
+// 	sf::RenderTexture rt({40u, 35u});  // pass size in constructor
+// 	rt.clear(sf::Color::Transparent);
+
+// 	// Horizontal bar
+// sf::RectangleShape hBar({30.f, 7.f});
+// hBar.setPosition({5.f, 14.f});
+// hBar.setFillColor(sf::Color::White);
+// rt.draw(hBar);
+
+// // Vertical bar
+// sf::RectangleShape vBar({7.f, 25.f});
+// vBar.setPosition({16.5f, 5.f});
+// vBar.setFillColor(sf::Color::White);
+// rt.draw(vBar);
+
+// 	rt.display();
+// 	rt.getTexture().copyToImage().saveToFile("Images/plus.png");
 
 	sf::RenderWindow window( sf::VideoMode( { 600, 400 } ), "Engine" );
 	window.setVerticalSyncEnabled(true);
@@ -29,14 +45,15 @@ int main()
 	Button button1(sf::Texture("Images/image2.jpg"),{view.getCenter().x+230,view.getCenter().y+140},"gravity",sf::Color::Blue);
 	Button button_add(sf::Texture("Images/plus.png"),{view.getCenter().x+230,view.getCenter().y+50},"Add Sphere",sf::Color::Green);
 	Button button_delete(sf::Texture("Images/minus.png"),{view.getCenter().x+230,view.getCenter().y-40},"Add Sphere",sf::Color::Red);
-
+	Button button_play(sf::Texture("Images/play.png"),{view.getCenter().x+100,view.getCenter().y+160},"Play/Pause",sf::Color::Yellow);
+	Button button_debug(sf::Texture("Images/debug.png"),{view.getCenter().x-30,view.getCenter().y+160},"Dubug",sf::Color::Cyan);
 	Engine eg(space);
 
 	std::function<void(const sf::Event::Closed)> onClose = [&window](const sf::Event::Closed&)
 	{
 		window.close();
 	};
-	std::function<void(const sf::Event::MouseMoved)> onMouseMoved=[&window, &view,&button1,&button_add,&button_delete] (const sf::Event::MouseMoved& e)
+	std::function<void(const sf::Event::MouseMoved)> onMouseMoved=[&window, &view,&button1,&button_add,&button_delete,&button_play,&button_debug] (const sf::Event::MouseMoved& e)
 	{
 		sf::Vector2f mousepos=window.mapPixelToCoords(e.position);
 
@@ -45,6 +62,16 @@ int main()
 			if(button1.getBounds().contains(mousepos)) button1.mouseON();
 			else button1.mouseOFF();
 		}
+		if(button_play.state!=Button::State::Press)
+		{
+			if(button_play.getBounds().contains(mousepos)) button_play.mouseON();
+			else button_play.mouseOFF();
+		}
+		if(button_debug.state!=Button::State::Press)
+		{
+			if(button_debug.getBounds().contains(mousepos)) button_debug.mouseON();
+			else button_debug.mouseOFF();
+		}
 
 		if(button_add.getBounds().contains(mousepos)) button_add.mouseON();
 		else button_add.mouseOFF();
@@ -52,7 +79,7 @@ int main()
 		if(button_delete.getBounds().contains(mousepos)) button_delete.mouseON();
 		else button_delete.mouseOFF();
 	};
-	std::function<void(const sf::Event::MouseButtonPressed)> onMouseButtonPressed=[&window, &view,&button1,&eg,&button_add,&button_delete](const sf::Event::MouseButtonPressed& e)
+	std::function<void(const sf::Event::MouseButtonPressed)> onMouseButtonPressed=[&window, &view,&button1,&eg,&button_add,&button_delete, &button_play,&button_debug](const sf::Event::MouseButtonPressed& e)
 	{
 		sf::Vector2f mousepos=window.mapPixelToCoords(e.position);
 		if(button1.getBounds().contains(mousepos))
@@ -62,7 +89,7 @@ int main()
 			{	
 				button1.mousePress();
 				button1.state=Button::State::Press;
-				eg.setGravity({0,45});
+				eg.setGravity({0,60});
 			}
 			else
 			{
@@ -71,6 +98,41 @@ int main()
 				eg.setGravity({0,0});
 			}
 		}
+
+		if(button_play.getBounds().contains(mousepos))
+		{
+			
+			if(button_play.state==Button::State::Released)
+			{	
+				button_play.mousePress();
+				button_play.state=Button::State::Press;
+				eg.stop();
+			}
+			else
+			{
+				button_play.mouseOFF();
+				button_play.state=Button::State::Released;
+				eg.resume();
+			}
+		}
+
+		if(button_debug.getBounds().contains(mousepos))
+		{
+			
+			if(button_debug.state==Button::State::Released)
+			{	
+				button_debug.mousePress();
+				button_debug.state=Button::State::Press;
+				eg.setDebug();
+			}
+			else
+			{
+				button_debug.mouseOFF();
+				button_debug.state=Button::State::Released;
+				eg.clearDebug();
+			}
+		}
+
 		if(button_add.getBounds().contains(mousepos))
 		{
 			button_add.mousePress();
@@ -82,13 +144,21 @@ int main()
 			eg.deleteSphere(0);
 		}
 	};
-	std::function<void(const sf::Event::MouseButtonReleased)> onMouseButtonReleased=[&window, &view,&button1,&eg,&button_add,&button_delete] (const sf::Event::MouseButtonReleased& e)
+	std::function<void(const sf::Event::MouseButtonReleased)> onMouseButtonReleased=[&window, &view,&button1,&eg,&button_add,&button_delete,&button_play,&button_debug] (const sf::Event::MouseButtonReleased& e)
 	{
 		sf::Vector2f mousepos=window.mapPixelToCoords(e.position);
 		if(button1.getBounds().contains(mousepos))
 		{
 			//nothing
 		} 
+		if(button_play.getBounds().contains(mousepos))
+		{
+			//nothing
+		}
+		if(button_debug.getBounds().contains(mousepos))
+		{
+			//nothing
+		}
 		if(button_add.getBounds().contains(mousepos))
 		{
 			button_add.mouseOFF();
@@ -131,6 +201,8 @@ int main()
 		window.draw(button1);
 		window.draw(button_add);
 		window.draw(button_delete);
+		window.draw(button_play);
+		window.draw(button_debug);
 		window.draw(eg);
         window.display();
 	}

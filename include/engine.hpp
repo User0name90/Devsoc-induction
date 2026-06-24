@@ -16,6 +16,7 @@ class Engine : public sf::Drawable
     mutable std::list<Sphere> spheres;
     mutable std::shared_mutex spheres_list_mutex;
     sf::RectangleShape& space;
+    sf::RectangleShape debug_line;
 
     std::mt19937  randomEngine;
     std::uniform_real_distribution<double> distribution;
@@ -26,6 +27,7 @@ class Engine : public sf::Drawable
 
     mutable std::atomic_flag stop_flag=true;
     mutable std::atomic_flag terminate_flag=true;
+    mutable std::atomic_flag debug_flag=false;
     sf::Vector2f gravity={0,0};
     bool shpere_removed_flag=false;
 
@@ -43,5 +45,7 @@ class Engine : public sf::Drawable
     void draw(sf::RenderTarget& target, sf::RenderStates states)const  override;
     void playSound();
     void setGravity(sf::Vector2f);
+    void setDebug();
+    void clearDebug();
     ~Engine();
 };
