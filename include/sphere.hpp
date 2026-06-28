@@ -20,7 +20,10 @@ class Sphere : public sf::Drawable
     
     double getMass() const;
     double getRadius() const;
+    sf::Color getColor() const;
     sf::Vector2f getPosition() const;
     sf::Vector2f getVelocity() const;
+    bool isDead()const;
     void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
+    
 };

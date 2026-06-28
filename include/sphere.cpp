@@ -25,16 +25,22 @@ sf::Vector2f Sphere::getPosition()const
 {
     return position;
 }
+sf::Color Sphere::getColor() const
+{
+    return shape.getFillColor();
+}
 //setter functions
 void Sphere::setMass(double mass)
 {
-    if(mass<=0) return;
+    if(mass<0) return;
     this->mass=mass;
 }
 void Sphere::setRadius(double radius)
 {
     if(radius<=0) return;
     this->radius=radius;
+    shape.setRadius(radius);
+    shape.setOrigin({radius,radius});
 }
 void Sphere::setPosition(sf::Vector2f pos)
 {
@@ -52,4 +58,8 @@ void Sphere::setColor(sf::Color c)
 void Sphere::draw(sf::RenderTarget& target, sf::RenderStates states) const
 {
     target.draw(shape, states);
+}
+bool Sphere::isDead() const
+{
+    return mass<2.0;
 }

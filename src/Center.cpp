@@ -47,13 +47,14 @@ int main()
 	Button button_delete(sf::Texture("Images/minus.png"),{view.getCenter().x+230,view.getCenter().y-40},"Add Sphere",sf::Color::Red);
 	Button button_play(sf::Texture("Images/play.png"),{view.getCenter().x+100,view.getCenter().y+160},"Play/Pause",sf::Color::Yellow);
 	Button button_debug(sf::Texture("Images/debug.png"),{view.getCenter().x-30,view.getCenter().y+160},"Dubug",sf::Color::Cyan);
+	Button button_snowball(sf::Texture("Images/splash2.png"),{view.getCenter().x-130,view.getCenter().y+160},"Snowball",sf::Color::Magenta);
 	Engine eg(space);
 
 	std::function<void(const sf::Event::Closed)> onClose = [&window](const sf::Event::Closed&)
 	{
 		window.close();
 	};
-	std::function<void(const sf::Event::MouseMoved)> onMouseMoved=[&window, &view,&button1,&button_add,&button_delete,&button_play,&button_debug] (const sf::Event::MouseMoved& e)
+	std::function<void(const sf::Event::MouseMoved)> onMouseMoved=[&window, &view,&button1,&button_add,&button_delete,&button_play,&button_debug,&button_snowball] (const sf::Event::MouseMoved& e)
 	{
 		sf::Vector2f mousepos=window.mapPixelToCoords(e.position);
 
@@ -72,6 +73,11 @@ int main()
 			if(button_debug.getBounds().contains(mousepos)) button_debug.mouseON();
 			else button_debug.mouseOFF();
 		}
+		if(button_snowball.state!=Button::State::Press)
+		{
+			if(button_snowball.getBounds().contains(mousepos)) button_snowball.mouseON();
+			else button_snowball.mouseOFF();
+		}
 
 		if(button_add.getBounds().contains(mousepos)) button_add.mouseON();
 		else button_add.mouseOFF();
@@ -79,7 +85,7 @@ int main()
 		if(button_delete.getBounds().contains(mousepos)) button_delete.mouseON();
 		else button_delete.mouseOFF();
 	};
-	std::function<void(const sf::Event::MouseButtonPressed)> onMouseButtonPressed=[&window, &view,&button1,&eg,&button_add,&button_delete, &button_play,&button_debug](const sf::Event::MouseButtonPressed& e)
+	std::function<void(const sf::Event::MouseButtonPressed)> onMouseButtonPressed=[&window, &view,&button1,&eg,&button_add,&button_delete, &button_play,&button_debug,&button_snowball](const sf::Event::MouseButtonPressed& e)
 	{
 		sf::Vector2f mousepos=window.mapPixelToCoords(e.position);
 		if(button1.getBounds().contains(mousepos))
@@ -133,6 +139,23 @@ int main()
 			}
 		}
 
+		if(button_snowball.getBounds().contains(mousepos))
+		{
+			
+			if(button_snowball.state==Button::State::Released)
+			{	
+				button_snowball.mousePress();
+				button_snowball.state=Button::State::Press;
+				eg.setSnowball();
+			}
+			else
+			{
+				button_snowball.mouseOFF();
+				button_snowball.state=Button::State::Released;
+				eg.clearSnowball();
+			}
+		}
+
 		if(button_add.getBounds().contains(mousepos))
 		{
 			button_add.mousePress();
@@ -144,21 +167,25 @@ int main()
 			eg.deleteSphere(0);
 		}
 	};
-	std::function<void(const sf::Event::MouseButtonReleased)> onMouseButtonReleased=[&window, &view,&button1,&eg,&button_add,&button_delete,&button_play,&button_debug] (const sf::Event::MouseButtonReleased& e)
+	std::function<void(const sf::Event::MouseButtonReleased)> onMouseButtonReleased=[&window, &view,&button1,&eg,&button_add,&button_delete,&button_play,&button_debug,&button_snowball] (const sf::Event::MouseButtonReleased& e)
 	{
 		sf::Vector2f mousepos=window.mapPixelToCoords(e.position);
-		if(button1.getBounds().contains(mousepos))
-		{
-			//nothing
-		} 
-		if(button_play.getBounds().contains(mousepos))
-		{
-			//nothing
-		}
-		if(button_debug.getBounds().contains(mousepos))
-		{
-			//nothing
-		}
+		// if(button1.getBounds().contains(mousepos))
+		// {
+		// 	//nothing
+		// } 
+		// if(button_play.getBounds().contains(mousepos))
+		// {
+		// 	//nothing
+		// }
+		// if(button_debug.getBounds().contains(mousepos))
+		// {
+		// 	//nothing
+		// }
+		// if(button_snowball.getBounds().contains(mousepos))
+		// {
+		// 	//nothing
+		// }
 		if(button_add.getBounds().contains(mousepos))
 		{
 			button_add.mouseOFF();
@@ -194,6 +221,13 @@ int main()
 	eg.createSphere();
 	while (window.isOpen())
 	{
+		if(eg.testSnowball())
+		{
+			eg.stop();
+			std::unique_lock<std::shared_mutex> ul(eg.spheres_list_mutex);
+			eg.spheres.remove_if([](const Sphere& s){ return s.isDead();});
+			eg.resume();
+		}
         window.handleEvents(onResize,onClose,onMouseMoved,onMouseButtonPressed,onMouseButtonReleased);
         window.clear();
         window.draw(background);
@@ -203,6 +237,7 @@ int main()
 		window.draw(button_delete);
 		window.draw(button_play);
 		window.draw(button_debug);
+		window.draw(button_snowball);
 		window.draw(eg);
         window.display();
 	}

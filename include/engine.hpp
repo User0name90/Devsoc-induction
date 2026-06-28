@@ -8,13 +8,14 @@
 #include <mutex>
 #include <shared_mutex>
 #include <condition_variable>
+#include "splasher_engine.hpp"
 class Engine : public sf::Drawable
 {
+    
     sf::SoundBuffer sound_buffer;
     sf::Sound collision_sound;
     double sound_amp;
-    mutable std::list<Sphere> spheres;
-    mutable std::shared_mutex spheres_list_mutex;
+
     sf::RectangleShape& space;
     sf::RectangleShape debug_line;
 
@@ -28,10 +29,15 @@ class Engine : public sf::Drawable
     mutable std::atomic_flag stop_flag=true;
     mutable std::atomic_flag terminate_flag=true;
     mutable std::atomic_flag debug_flag=false;
+    mutable std::atomic_flag snowball_flag=false;
     sf::Vector2f gravity={0,0};
+    //must be after gravity and space
+    SplasherEngine splash;
     bool shpere_removed_flag=false;
 
     public:
+    mutable std::list<Sphere> spheres;
+    mutable std::shared_mutex spheres_list_mutex;
     Engine(sf::RectangleShape& rect);
     void checkCollision();
     void checkBounds();
@@ -46,6 +52,10 @@ class Engine : public sf::Drawable
     void playSound();
     void setGravity(sf::Vector2f);
     void setDebug();
+    void setSnowball();
     void clearDebug();
+    void clearSnowball();
+    bool testSnowball();
+
     ~Engine();
 };

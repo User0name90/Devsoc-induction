@@ -1,6 +1,6 @@
 #include "engine.hpp"
 #include <iostream>
-Engine::Engine(sf::RectangleShape& rect):space{rect}, randomEngine{std::random_device{}()},sound_buffer{"Audio/collide.mp3"},collision_sound{sound_buffer}
+Engine::Engine(sf::RectangleShape& rect):space{rect}, randomEngine{std::random_device{}()},sound_buffer{"Audio/collide.mp3"},collision_sound{sound_buffer},splash{SplasherEngine(gravity,space)}
 {
     debug_line.setSize({60.f,3.f});
     debug_line.setOrigin({30.f,1.5f});
@@ -48,7 +48,7 @@ void Engine::createSphere()
     velocity.x=distribution(this->randomEngine);
     velocity.y=distribution(this->randomEngine);
 
-    distribution.param(std::uniform_real_distribution<double>::param_type(1,75));
+    distribution.param(std::uniform_real_distribution<double>::param_type(3,75));
     double mass=distribution(this->randomEngine);
     spheres.push_back(Sphere(mass,radius,position,velocity));
     if(mass<=36)
@@ -91,24 +91,31 @@ void Engine::checkBounds()
                 it->setVelocity({-vel.x,vel.y});
                 sound_amp=std::abs(vel.x/1.4);
                 playSound();
+                if(snowball_flag.test())
+                {
+                    splash.createSplash(*it,{space.getGlobalBounds().position.x,it->getPosition().y},'x');
+                }
             }
             if(it->getPosition().x+it->getRadius()>=space.getGlobalBounds().position.x+space.getSize().x && it->getVelocity().x>=0)
             {
                it->setVelocity({-vel.x,vel.y}); 
                sound_amp=std::abs(vel.x/1.40);
                playSound();
+               if(snowball_flag.test()) splash.createSplash(*it,{space.getGlobalBounds().position.x+space.getSize().x,it->getPosition().y},'x');
             }
             if(it->getPosition().y-it->getRadius()<=space.getGlobalBounds().position.y && it->getVelocity().y<=0)
             {
                 it->setVelocity({vel.x,-vel.y});
                 sound_amp=std::abs(vel.y/1.40);
                 playSound();
+                if(snowball_flag.test()) splash.createSplash(*it,{it->getPosition().x,space.getGlobalBounds().position.y},'y');
             }
             if(it->getPosition().y+it->getRadius()>=space.getGlobalBounds().position.y+space.getSize().y && it->getVelocity().y>=0)
             {
                 it->setVelocity({vel.x,-vel.y});
                 sound_amp=std::abs(vel.y/1.40);
                 playSound();
+                if(snowball_flag.test()) splash.createSplash(*it,{it->getPosition().x,space.getGlobalBounds().position.y+space.getSize().y},'y');
             }
             it->mutex->unlock();
 
@@ -129,6 +136,7 @@ void Engine::checkCollision()
     sf::Vector2f vel1,vel2;
     sf::Vector2f normal;
     sf::Vector2f tangent;
+    sf::Vector2f point_of_contact;
     while(1)
     {
         while(stop_flag.test())
@@ -164,9 +172,16 @@ void Engine::checkCollision()
                 v2t=vel2.dot(tangent);
                 if(std::abs(distance)<=it_first->getRadius()+it_second->getRadius() && v1n-v2n>0.f)
                 {
-                    debug_line.setRotation(tangent.angle());
-                    debug_line.setPosition(it_first->getPosition()+normal*(float)it_first->getRadius());
-                    
+                    point_of_contact=it_first->getPosition()+normal*(float)it_first->getRadius();
+                    if(debug_flag.test())
+                    {
+                        debug_line.setRotation(tangent.angle());
+                        debug_line.setPosition(point_of_contact);
+                    }
+                    if(snowball_flag.test())
+                    {
+                        splash.createSplash(*it_first,*it_second,v1n,v2n,v1t,v2t,point_of_contact,normal,tangent);
+                    }
                     mass_sum=it_first->getMass()+it_second->getMass();
                     mass_dif=it_first->getMass()-it_second->getMass();
                     
@@ -179,7 +194,8 @@ void Engine::checkCollision()
 
                     sound_amp=std::abs(v1n-v2n);
                     playSound();
-                    
+                    // std::cout<<"Mass1: "<<it_first->getMass()<<" Radius1:"<<it_first->getRadius()<<'\n';
+                    // std::cout<<"Mass2: "<<it_second->getMass()<<" Radius1:"<<it_second->getRadius()<<'\n';
                 }
             }
         }
@@ -244,10 +260,12 @@ void Engine::resume()
 
     stop_flag.clear();
     stop_flag.notify_all();
+    splash.resume();
 }
 void Engine::stop()
 {
     stop_flag.test_and_set();
+    splash.stop();
 }
 void Engine::draw(sf::RenderTarget& target, sf::RenderStates states) const
 {
@@ -261,6 +279,10 @@ void Engine::draw(sf::RenderTarget& target, sf::RenderStates states) const
     {
         target.draw(debug_line);
     }
+    if(snowball_flag.test())
+    {
+        target.draw(splash,states);
+    }
 }
 void Engine::start()
 {
@@ -273,6 +295,7 @@ void Engine::start()
 }
 void Engine::terminate()
 {
+    splash.terminate();
     terminate_flag.test_and_set();
     stop_flag.clear();
     stop_flag.notify_all();
@@ -286,6 +309,7 @@ void Engine::terminate()
 void Engine::setGravity(sf::Vector2f gravity)
 {
     this->gravity=gravity;
+
 }
 void Engine::playSound()
 {
@@ -296,7 +320,19 @@ void Engine::setDebug()
 {
     debug_flag.test_and_set();
 }
+void Engine::setSnowball()
+{
+    snowball_flag.test_and_set();
+}
 void Engine::clearDebug()
 {
     debug_flag.clear();
+}
+void Engine::clearSnowball()
+{
+    snowball_flag.clear();
+}
+bool Engine::testSnowball()
+{
+   return snowball_flag.test();
 }

@@ -20,12 +20,20 @@ add_executable(main
     src/Center.cpp
     include/button.cpp
     include/sphere.cpp
-    include/engine.cpp)
+    include/engine.cpp
+    include/particle_splasher.cpp
+    include/splasher_engine.cpp)
 target_link_libraries(main PRIVATE
     SFML::Graphics
     SFML::Audio
     SFML::Network
 )
 target_include_directories(main PUBLIC ${CMAKE_SOURCE_DIR} include)
+# target_compile_options(main PRIVATE
+#     -Wall        # includes -Wreorder and many others
+#     -Wextra      # extra warnings Wall doesn't cover
+#     -Wpedantic   # strict standard compliance
+#     -Wshadow     # warns when variable shadows another (like your count bug earlier)
+# )
 
 set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT main)
