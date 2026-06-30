@@ -28,8 +28,8 @@ class SplasherEngine : public sf::Drawable
     mutable Circular* head=nullptr;
     sf::RectangleShape& space;
     sf::Vector2f& gravity;
-    const double reduction_factor=0.05;
-    const unsigned int mass_to_particle=30;
+    const double reduction_factor=0.001;
+    const unsigned int mass_to_particle=100;
     public:
     SplasherEngine(sf::Vector2f& gravity,sf::RectangleShape& rect);
     ~SplasherEngine();

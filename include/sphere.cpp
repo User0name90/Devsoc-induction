@@ -32,20 +32,23 @@ sf::Color Sphere::getColor() const
 //setter functions
 void Sphere::setMass(double mass)
 {
-    if(mass<0) return;
-    this->mass=mass;
+    this->mass = std::max(mass, 0.0);
 }
 void Sphere::setRadius(double radius)
 {
-    if(radius<=0) return;
-    this->radius=radius;
-    shape.setRadius(radius);
-    shape.setOrigin({radius,radius});
+    this->radius=std::max(radius,0.0);
+    shape.setRadius(this->radius);
+    shape.setOrigin({static_cast<float>(this->radius),static_cast<float>(this->radius)});
 }
 void Sphere::setPosition(sf::Vector2f pos)
 {
     shape.setPosition(pos);
     this->position=pos;
+}
+void Sphere::move(sf::Vector2f pos)
+{
+    shape.move(pos);
+    this->position+=pos;
 }
 void Sphere::setVelocity(sf::Vector2f velocity)
 {

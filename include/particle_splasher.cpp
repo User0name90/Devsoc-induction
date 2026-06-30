@@ -103,9 +103,13 @@ void particle_splasher::start(sf::Color color,unsigned int count,sf::Vector2f m_
             // if the particle is dead, leave it
             if (p.lifetime <= sf::Time::Zero) continue;
             
-            if(m_vertices[i].position.y>=space.position.y+space.size.y)
+            if(m_vertices[i].position.y>=space.position.y+space.size.y|| m_vertices[i].position.y<=space.position.y)
             {
                 p.velocity=sf::Vector2f(p.velocity.x,-p.velocity.y);
+            }
+            if(m_vertices[i].position.x>=space.position.x+space.size.x||m_vertices[i].position.x<=space.position.x)
+            {
+                p.velocity=sf::Vector2f(-p.velocity.x,p.velocity.y);
             }
             else p.velocity+=sf::Vector2f(gravity)*elapsed.asSeconds();
 

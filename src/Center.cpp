@@ -221,7 +221,7 @@ int main()
 	eg.createSphere();
 	while (window.isOpen())
 	{
-		if(eg.testSnowball())
+		if(eg.testSnowball()&& button_play.state==Button::State::Released)
 		{
 			eg.stop();
 			std::unique_lock<std::shared_mutex> ul(eg.spheres_list_mutex);

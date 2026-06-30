@@ -1,5 +1,4 @@
 #include "engine.hpp"
-#include <iostream>
 Engine::Engine(sf::RectangleShape& rect):space{rect}, randomEngine{std::random_device{}()},sound_buffer{"Audio/collide.mp3"},collision_sound{sound_buffer},splash{SplasherEngine(gravity,space)}
 {
     debug_line.setSize({60.f,3.f});
@@ -51,20 +50,17 @@ void Engine::createSphere()
     distribution.param(std::uniform_real_distribution<double>::param_type(3,75));
     double mass=distribution(this->randomEngine);
     spheres.push_back(Sphere(mass,radius,position,velocity));
-    if(mass<=36)
+    double density=mass/(M_PI*radius*radius);
+    if(density<=0.0061304126)
     {
-        spheres.back().setColor({0,uint8_t(mass/36*255),uint8_t(255 - mass/36*255)});
+        spheres.back().setColor({0,uint8_t(density/0.0061304126*255),uint8_t(255 - density/0.0061304126*255)});
     }
     else
     {
-        spheres.back().setColor({uint8_t((mass-36)/36*255),uint8_t(255-(mass-36)/36*255),0});
+        spheres.back().setColor({uint8_t((density-0.0061304126)/0.0061304126*255),uint8_t(255-(density-0.0061304126)/0.0061304126*255),0});
     }
     stop_flag.clear();
     stop_flag.notify_all();
-    //Remove this
-                    std::cout<<position.x<< ' '<<position.y<<'\n';
-                    std::this_thread::sleep_for(std::chrono::milliseconds(200));
-            //remove this
 }
 
 void Engine::checkBounds()

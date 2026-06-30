@@ -17,6 +17,7 @@ class Sphere : public sf::Drawable
     void setPosition(sf::Vector2f);
     void setVelocity(sf::Vector2f);
     void setColor(sf::Color);
+    void move(sf::Vector2f);
     
     double getMass() const;
     double getRadius() const;
